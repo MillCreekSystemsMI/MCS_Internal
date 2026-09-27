@@ -1,0 +1,433 @@
+<title>Mill Creek Pipeline</title>
+<style>
+  :root {
+    --navy: #123350;
+    --navy-soft: #1c4266;
+    --teal: #2FADC4;
+    --teal-dark: #22879A;
+    --bg: #E7EFEE;
+    --band: #DCE6E4;
+    --hairline: #C7D6D5;
+    --muted: #5B7280;
+    --card: #FFFFFF;
+    --st-new: #8DA0A9;
+    --st-contacted: #2FADC4;
+    --st-replied: #C68A2E;
+    --st-meeting: #7A5FB0;
+    --st-client: #2E8B57;
+    --st-passed: #B34A4A;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --navy: #E7EFEE;
+      --navy-soft: #C7D6D5;
+      --bg: #0F1E2A;
+      --band: #16293A;
+      --hairline: #2A4256;
+      --muted: #93A9B6;
+      --card: #142838;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --navy: #E7EFEE;
+    --navy-soft: #C7D6D5;
+    --bg: #0F1E2A;
+    --band: #16293A;
+    --hairline: #2A4256;
+    --muted: #93A9B6;
+    --card: #142838;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--navy); font-family: 'Source Sans 3', Arial, sans-serif; padding-inline: 20px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 32px 60px; }
+  h1, h2, .mono-label { font-family: 'Montserrat', sans-serif; }
+  h1 { font-weight: 900; font-size: 28px; margin: 0 0 4px 0; text-wrap: balance; }
+  .sub { color: var(--muted); font-size: 15px; margin: 0 0 24px 0; }
+  .top-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .btn { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 14px; letter-spacing: 0.02em; padding: 11px 20px; border: none; cursor: pointer; }
+  .btn-primary { background: var(--navy); color: var(--bg); }
+  .btn-primary:hover { background: var(--teal-dark); }
+  .btn-ghost { background: transparent; color: var(--navy); border: 1px solid var(--hairline); }
+  .btn-ghost:hover { border-color: var(--teal); color: var(--teal-dark); }
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 28px 0; }
+  .stat { background: var(--card); border-top: 3px solid var(--hairline); padding: 12px 10px; text-align: center; cursor: pointer; }
+  .stat.active { border-top-color: var(--teal); }
+  .stat .n { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 22px; line-height: 1; font-variant-numeric: tabular-nums; }
+  .stat .l { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .filters { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+  .search { flex: 1 1 220px; border: 1px solid var(--hairline); background: var(--card); color: var(--navy); padding: 9px 12px; font-size: 14px; font-family: inherit; }
+  .search::placeholder { color: var(--muted); }
+  .list { display: flex; flex-direction: column; gap: 10px; }
+  .row-card { background: var(--card); border: 1px solid var(--hairline); padding: 16px 18px; display: flex; gap: 16px; align-items: flex-start; }
+  .row-main { flex: 1 1 auto; min-width: 0; }
+  .row-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .company { font-family: 'Montserrat', sans-serif; font-weight: 800; font-size: 17px; }
+  .industry-tag { font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); }
+  .contact-line { font-size: 14px; color: var(--muted); margin-top: 4px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .contact-item { display: inline-flex; align-items: center; gap: 6px; }
+  .contact-item a { color: var(--muted); }
+  .contact-item a:hover { color: var(--teal-dark); }
+  .copy-btn { background: none; border: 1px solid var(--hairline); color: var(--muted); font-size: 11px; padding: 1px 7px; cursor: pointer; font-family: 'Source Sans 3', Arial, sans-serif; }
+  .copy-btn:hover { border-color: var(--teal); color: var(--teal-dark); }
+  .notes-line { font-size: 14px; margin-top: 8px; line-height: 1.45; }
+  .row-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex: 0 0 auto; }
+  .pill { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: #fff; padding: 5px 10px; border: none; cursor: pointer; }
+  .last-contact { font-size: 12px; color: var(--muted); }
+  .row-actions { display: flex; gap: 10px; }
+  .icon-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 13px; font-family: 'Source Sans 3', Arial, sans-serif; padding: 0; }
+  .icon-btn:hover { color: var(--teal-dark); text-decoration: underline; }
+  .empty { text-align: center; padding: 60px 20px; color: var(--muted); }
+  .modal-backdrop { position: fixed; inset: 0; z-index: 100; background: rgba(18,51,80,0.55); display: none; align-items: center; justify-content: center; padding: 20px; }
+  .modal-backdrop.open { display: flex; }
+  .modal-box { background: var(--bg); width: 100%; max-width: 460px; max-height: 90vh; overflow-y: auto; padding: 26px 28px; position: relative; }
+  .modal-close { position: absolute; top: 12px; right: 14px; background: none; border: none; cursor: pointer; font-size: 22px; color: var(--navy); }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; border: none; border-bottom: 1px solid var(--hairline); background: transparent;
+    font-family: 'Source Sans 3', Arial, sans-serif; font-size: 15px; color: var(--navy); padding: 8px 2px;
+  }
+  .field textarea { resize: vertical; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .modal-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 20px; margin: 0 0 18px 0; }
+  @media (max-width: 700px) {
+    .stats { grid-template-columns: repeat(3, 1fr); }
+    .row-card { flex-direction: column; }
+    .row-side { flex-direction: row; align-items: center; width: 100%; justify-content: space-between; }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800;900&family=Source+Sans+3:wght@400;600&display=swap">
+
+<div class="wrap">
+  <div class="top-bar">
+    <div>
+      <h1>Mill Creek Pipeline</h1>
+      <p class="sub">Local leads, tracked from first contact to client.</p>
+    </div>
+    <button class="btn btn-primary" id="add-btn">+ Add lead</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="filters">
+    <input class="search" id="search" type="text" placeholder="Search company, contact, or notes">
+    <button class="btn btn-ghost" id="clear-filter" style="display:none;">Clear filter</button>
+  </div>
+
+  <div class="list" id="list"></div>
+  <div class="empty" id="empty" style="display:none;">No leads match this view yet.</div>
+</div>
+
+<!-- lead modal -->
+<div class="modal-backdrop" id="lead-modal" onclick="if (event.target === this) closeModal()">
+  <div class="modal-box">
+    <button type="button" class="modal-close" aria-label="Close" onclick="closeModal()">&times;</button>
+    <div class="modal-title" id="modal-title">Add a lead</div>
+    <form id="lead-form">
+      <div class="field">
+        <label for="f-company">Company</label>
+        <input id="f-company" required>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="f-industry">Industry</label>
+          <input id="f-industry" placeholder="e.g. Trucking, Manufacturing">
+        </div>
+        <div class="field">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="replied">Replied</option>
+            <option value="meeting">Meeting set</option>
+            <option value="client">Client</option>
+            <option value="passed">Passed</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-contact-name">Contact name</label>
+        <input id="f-contact-name">
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="f-contact-email">Email</label>
+          <input id="f-contact-email" type="email" placeholder="name@company.com">
+        </div>
+        <div class="field">
+          <label for="f-contact-phone">Phone</label>
+          <input id="f-contact-phone" type="tel" placeholder="(810) 555-0100">
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-source">Website / link (optional)</label>
+        <input id="f-source" placeholder="https://...">
+      </div>
+      <div class="field">
+        <label for="f-last-contact">Last contact date</label>
+        <input id="f-last-contact" type="date">
+      </div>
+      <div class="field">
+        <label for="f-notes">Notes</label>
+        <textarea id="f-notes" rows="3"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;">Save lead</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const STATUSES = [
+    { key: 'new', label: 'New', color: 'var(--st-new)' },
+    { key: 'contacted', label: 'Contacted', color: 'var(--st-contacted)' },
+    { key: 'replied', label: 'Replied', color: 'var(--st-replied)' },
+    { key: 'meeting', label: 'Meeting set', color: 'var(--st-meeting)' },
+    { key: 'client', label: 'Client', color: 'var(--st-client)' },
+    { key: 'passed', label: 'Passed', color: 'var(--st-passed)' },
+  ];
+  const statusLabel = k => (STATUSES.find(s => s.key === k) || STATUSES[0]).label;
+  const statusColor = k => (STATUSES.find(s => s.key === k) || STATUSES[0]).color;
+
+  let leads = [];
+  let activeFilter = null;
+  let editingId = null;
+  let db = null;
+
+  function fmtDate(iso) {
+    if (!iso) return 'No contact logged';
+    const d = new Date(iso + 'T00:00:00');
+    if (isNaN(d)) return iso;
+    return 'Last contact ' + d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function render() {
+    const statsEl = document.getElementById('stats');
+    statsEl.innerHTML = STATUSES.map(s => {
+      const count = leads.filter(l => l.status === s.key).length;
+      const active = activeFilter === s.key ? ' active' : '';
+      return `<div class="stat${active}" data-status="${s.key}"><div class="n" style="color:${s.color}">${count}</div><div class="l">${s.label}</div></div>`;
+    }).join('');
+    statsEl.querySelectorAll('.stat').forEach(el => {
+      el.addEventListener('click', () => {
+        const k = el.getAttribute('data-status');
+        activeFilter = activeFilter === k ? null : k;
+        document.getElementById('clear-filter').style.display = activeFilter ? 'inline-block' : 'none';
+        renderList();
+      });
+    });
+    renderList();
+  }
+
+  function renderList() {
+    const q = (document.getElementById('search').value || '').toLowerCase().trim();
+    let filtered = leads.slice();
+    if (activeFilter) filtered = filtered.filter(l => l.status === activeFilter);
+    if (q) filtered = filtered.filter(l =>
+      (l.company || '').toLowerCase().includes(q) ||
+      (l.contact_name || '').toLowerCase().includes(q) ||
+      (l.contact_email || '').toLowerCase().includes(q) ||
+      (l.contact_phone || '').toLowerCase().includes(q) ||
+      (l.notes || '').toLowerCase().includes(q) ||
+      (l.industry || '').toLowerCase().includes(q)
+    );
+    filtered.sort((a, b) => (a.company || '').localeCompare(b.company || ''));
+
+    const listEl = document.getElementById('list');
+    const emptyEl = document.getElementById('empty');
+    if (filtered.length === 0) {
+      listEl.innerHTML = '';
+      emptyEl.style.display = 'block';
+      return;
+    }
+    emptyEl.style.display = 'none';
+
+    listEl.innerHTML = filtered.map(l => {
+      const optionsHtml = STATUSES.map(s => `<option value="${s.key}" ${s.key === l.status ? 'selected' : ''}>${s.label}</option>`).join('');
+      const parts = [];
+      if (l.contact_name) parts.push(`<span class="contact-item">${escapeHtml(l.contact_name)}</span>`);
+      if (l.contact_email) parts.push(`<span class="contact-item"><a href="mailto:${escapeAttr(l.contact_email)}">${escapeHtml(l.contact_email)}</a><button type="button" class="copy-btn" data-copy="${escapeAttr(l.contact_email)}">Copy</button></span>`);
+      if (l.contact_phone) parts.push(`<span class="contact-item"><a href="tel:${escapeAttr(l.contact_phone.replace(/[^\d+]/g, ''))}">${escapeHtml(l.contact_phone)}</a><button type="button" class="copy-btn" data-copy="${escapeAttr(l.contact_phone)}">Copy</button></span>`);
+      if (l.source_url) parts.push(`<span class="contact-item"><a href="${escapeAttr(l.source_url)}" target="_blank" rel="noopener">site</a></span>`);
+      const contactLine = parts.join('');
+      return `
+        <div class="row-card" data-id="${l.id}">
+          <div class="row-main">
+            <div class="row-top">
+              <span class="company">${escapeHtml(l.company)}</span>
+              ${l.industry ? `<span class="industry-tag">${escapeHtml(l.industry)}</span>` : ''}
+            </div>
+            ${contactLine ? `<div class="contact-line">${contactLine}</div>` : ''}
+            ${l.notes ? `<div class="notes-line">${escapeHtml(l.notes)}</div>` : ''}
+          </div>
+          <div class="row-side">
+            <select class="pill status-select" data-id="${l.id}" style="background:${statusColor(l.status)}">${optionsHtml}</select>
+            <div class="last-contact">${fmtDate(l.last_contact)}</div>
+            <div class="row-actions">
+              <button class="icon-btn edit-btn" data-id="${l.id}">Edit</button>
+              <button class="icon-btn delete-btn" data-id="${l.id}">Delete</button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    listEl.querySelectorAll('.status-select').forEach(sel => {
+      sel.addEventListener('change', async (e) => {
+        const id = sel.getAttribute('data-id');
+        const newStatus = sel.value;
+        sel.style.background = statusColor(newStatus);
+        const lead = leads.find(x => x.id === id);
+        if (lead) lead.status = newStatus;
+        if (db) {
+          try { await db.collection('leads').doc(id).update({ status: newStatus }); } catch (err) {}
+        }
+      });
+    });
+    listEl.querySelectorAll('.copy-btn').forEach(btn => {
+      btn.addEventListener('click', () => copyText(btn.getAttribute('data-copy'), btn));
+    });
+    listEl.querySelectorAll('.edit-btn').forEach(btn => {
+      btn.addEventListener('click', () => openModal(btn.getAttribute('data-id')));
+    });
+    listEl.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirmInline(btn)) return;
+        leads = leads.filter(x => x.id !== id);
+        renderList();
+        if (db) {
+          try { await db.collection('leads').doc(id).delete(); } catch (err) {}
+        }
+      });
+    });
+  }
+
+  // artifact viewer has no confirm(); a double-click style inline confirm instead
+  function confirmInline(btn) {
+    if (btn.dataset.armed === '1') { btn.dataset.armed = '0'; btn.textContent = 'Delete'; return true; }
+    btn.dataset.armed = '1';
+    btn.textContent = 'Sure?';
+    setTimeout(() => { btn.dataset.armed = '0'; btn.textContent = 'Delete'; }, 2500);
+    return false;
+  }
+
+  function escapeHtml(s) {
+    return (s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+  function escapeAttr(s) { return escapeHtml(s); }
+
+  async function copyText(text, btn) {
+    const original = btn.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      btn.textContent = 'Copied';
+    } catch (err) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        btn.textContent = 'Copied';
+      } catch (err2) {
+        btn.textContent = 'Select to copy';
+      }
+    }
+    setTimeout(() => { btn.textContent = original; }, 1600);
+  }
+
+  function openModal(id) {
+    editingId = id || null;
+    const form = document.getElementById('lead-form');
+    form.reset();
+    document.getElementById('modal-title').textContent = id ? 'Edit lead' : 'Add a lead';
+    if (id) {
+      const l = leads.find(x => x.id === id);
+      if (l) {
+        document.getElementById('f-company').value = l.company || '';
+        document.getElementById('f-industry').value = l.industry || '';
+        document.getElementById('f-status').value = l.status || 'new';
+        document.getElementById('f-contact-name').value = l.contact_name || '';
+        document.getElementById('f-contact-email').value = l.contact_email || '';
+        document.getElementById('f-contact-phone').value = l.contact_phone || '';
+        document.getElementById('f-source').value = l.source_url || '';
+        document.getElementById('f-last-contact').value = l.last_contact || '';
+        document.getElementById('f-notes').value = l.notes || '';
+      }
+    }
+    document.getElementById('lead-modal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeModal() {
+    document.getElementById('lead-modal').classList.remove('open');
+    document.body.style.overflow = '';
+    editingId = null;
+  }
+
+  document.getElementById('add-btn').addEventListener('click', () => openModal(null));
+  document.getElementById('search').addEventListener('input', renderList);
+  document.getElementById('clear-filter').addEventListener('click', () => {
+    activeFilter = null;
+    document.getElementById('clear-filter').style.display = 'none';
+    render();
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  document.getElementById('lead-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      company: document.getElementById('f-company').value.trim(),
+      industry: document.getElementById('f-industry').value.trim(),
+      status: document.getElementById('f-status').value,
+      contact_name: document.getElementById('f-contact-name').value.trim(),
+      contact_email: document.getElementById('f-contact-email').value.trim(),
+      contact_phone: document.getElementById('f-contact-phone').value.trim(),
+      source_url: document.getElementById('f-source').value.trim(),
+      last_contact: document.getElementById('f-last-contact').value,
+      notes: document.getElementById('f-notes').value.trim(),
+    };
+    if (!data.company) return;
+
+    if (editingId) {
+      const idx = leads.findIndex(x => x.id === editingId);
+      if (idx > -1) leads[idx] = { ...leads[idx], ...data };
+      if (db) { try { await db.collection('leads').doc(editingId).update(data); } catch (err) {} }
+    } else {
+      const tempId = 'tmp-' + Date.now();
+      leads.push({ id: tempId, ...data });
+      if (db) {
+        try {
+          const ref = await db.collection('leads').add(data);
+          const t = leads.findIndex(x => x.id === tempId);
+          if (t > -1) leads[t].id = ref.id;
+        } catch (err) {}
+      }
+    }
+    closeModal();
+    render();
+  });
+
+  async function boot() {
+    try {
+      db = (window.claude && window.claude.use) ? await window.claude.use('db') : null;
+    } catch (err) { db = null; }
+    if (db) {
+      db.collection('leads').onSnapshot(
+        (snap) => {
+          leads = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+          render();
+        },
+        () => { render(); }
+      );
+    } else {
+      render();
+    }
+  }
+  boot();
+</script>

@@ -93,6 +93,16 @@
   .field textarea { resize: vertical; }
   .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .modal-title { font-family: 'Montserrat', sans-serif; font-weight: 900; font-size: 20px; margin: 0 0 18px 0; }
+  .research-panel { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--hairline); }
+  .research-panel h2 { font-weight: 900; font-size: 19px; margin: 0 0 8px 0; }
+  .request-list { margin-top: 20px; display: flex; flex-direction: column; gap: 8px; }
+  .request-row { background: var(--card); border: 1px solid var(--hairline); padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .request-main { font-size: 14px; }
+  .request-main .rq-industry { font-weight: 700; }
+  .request-main .rq-area { color: var(--muted); }
+  .req-pill { font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; padding: 4px 9px; color: #fff; flex: 0 0 auto; }
+  .req-pill.pending { background: var(--st-new); }
+  .req-pill.done { background: var(--st-client); }
   @media (max-width: 700px) {
     .stats { grid-template-columns: repeat(3, 1fr); }
     .row-card { flex-direction: column; }
@@ -120,6 +130,29 @@
 
   <div class="list" id="list"></div>
   <div class="empty" id="empty" style="display:none;">No leads match this view yet.</div>
+
+  <div class="research-panel">
+    <h2>Find more leads</h2>
+    <p class="sub" style="margin-bottom:16px;">This page can't browse the web on its own. Set what you're looking for here, and Claude picks up the request in your next conversation and adds real, verified businesses to the list above &mdash; it won't invent company names.</p>
+    <form id="research-form">
+      <div class="two-col">
+        <div class="field">
+          <label for="r-industry">Industry / keywords</label>
+          <input id="r-industry" placeholder="e.g. propane dealers, small manufacturers" required>
+        </div>
+        <div class="field">
+          <label for="r-area">Area</label>
+          <input id="r-area" value="Thumb region (St. Clair, Sanilac, Huron, Tuscola counties)">
+        </div>
+      </div>
+      <div class="field">
+        <label for="r-notes">Anything else to narrow it down</label>
+        <textarea id="r-notes" rows="2" placeholder="Company size, must have a website, exclude companies you already know, etc."></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Submit request</button>
+    </form>
+    <div class="request-list" id="request-list"></div>
+  </div>
 </div>
 
 <!-- lead modal -->
@@ -193,6 +226,7 @@
   const statusColor = k => (STATUSES.find(s => s.key === k) || STATUSES[0]).color;
 
   let leads = [];
+  let requests = [];
   let activeFilter = null;
   let editingId = null;
   let db = null;
@@ -413,6 +447,43 @@
     render();
   });
 
+  function renderRequests() {
+    const el = document.getElementById('request-list');
+    if (!requests.length) { el.innerHTML = ''; return; }
+    const sorted = requests.slice().sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+    el.innerHTML = sorted.map(r => `
+      <div class="request-row">
+        <div class="request-main">
+          <span class="rq-industry">${escapeHtml(r.industry)}</span>
+          <span class="rq-area"> &middot; ${escapeHtml(r.area)}</span>
+          ${r.notes ? `<div style="color:var(--muted); margin-top:2px;">${escapeHtml(r.notes)}</div>` : ''}
+          ${r.status === 'done' && r.result_summary ? `<div style="color:var(--muted); margin-top:2px;">${escapeHtml(r.result_summary)}</div>` : ''}
+        </div>
+        <span class="req-pill ${r.status === 'done' ? 'done' : 'pending'}">${r.status === 'done' ? 'Done' : 'Pending'}</span>
+      </div>
+    `).join('');
+  }
+
+  document.getElementById('research-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = {
+      industry: document.getElementById('r-industry').value.trim(),
+      area: document.getElementById('r-area').value.trim(),
+      notes: document.getElementById('r-notes').value.trim(),
+      status: 'pending',
+      created_at: new Date().toISOString(),
+    };
+    if (!data.industry) return;
+    const tempId = 'tmp-' + Date.now();
+    requests.push({ id: tempId, ...data });
+    renderRequests();
+    if (db) {
+      try { await db.collection('research_requests').add(data); } catch (err) {}
+    }
+    e.target.reset();
+    document.getElementById('r-area').value = 'Thumb region (St. Clair, Sanilac, Huron, Tuscola counties)';
+  });
+
   async function boot() {
     try {
       db = (window.claude && window.claude.use) ? await window.claude.use('db') : null;
@@ -424,6 +495,13 @@
           render();
         },
         () => { render(); }
+      );
+      db.collection('research_requests').onSnapshot(
+        (snap) => {
+          requests = snap.docs.map(d => ({ id: d.id, ...(d.data() || {}) }));
+          renderRequests();
+        },
+        () => { renderRequests(); }
       );
     } else {
       render();
